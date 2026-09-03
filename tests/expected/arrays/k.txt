@@ -1,0 +1,4 @@
+# k
+# shape (), dtype float64, range [100, 100]
+#
+100.0

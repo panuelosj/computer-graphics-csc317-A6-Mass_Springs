@@ -1,0 +1,4 @@
+# b
+# shape (2,), dtype int64, range [0, 2]
+#
+[0 2]
