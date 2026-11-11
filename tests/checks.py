@@ -193,8 +193,9 @@ def check_fast_mass_springs_step_dense():
     )
 
     # Second fixture: a longer, stiffer chain whose Ucur is displaced on the
-    # pinned rows too. Discriminates too few local-global iterations (must be
-    # 50) and a pinning term built from Ucur instead of V.
+    # pinned rows too. 50 iterations do not converge on it, so it checks the
+    # exact iterate: a start other than Unext = Ucur, any count other than 50,
+    # or a pinning term built from Ucur instead of V fails here.
     Qc = _reconstruct_chain_Q(g)
     prec = cho_factor(Qc)
     out = np.asarray(fast_mass_springs_step_dense(
@@ -204,8 +205,8 @@ def check_fast_mass_springs_step_dense():
         g["chain_Uprev"], g["chain_Ucur"],
     ))
     assert np.allclose(out, g["chain_Unext"], atol=1e-6), (
-        "step_dense: chain single-step differs from reference (are you running "
-        "50 local-global iterations and pinning to the REST positions V?)"
+        "step_dense: chain step differs. Start at Unext = Ucur, run exactly "
+        "50 local-global iterations, and pin to the rest positions V."
     )
 
 
@@ -249,8 +250,8 @@ def check_fast_mass_springs_step_sparse():
         Mc, Ac, Cc, prec, g["chain_Uprev"], g["chain_Ucur"],
     ))
     assert np.allclose(out, g["chain_Unext"], atol=1e-6), (
-        "step_sparse: chain single-step differs from reference (are you running "
-        "50 local-global iterations and pinning to the REST positions V?)"
+        "step_sparse: chain step differs. Start at Unext = Ucur, run exactly "
+        "50 local-global iterations, and pin to the rest positions V."
     )
 
 

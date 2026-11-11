@@ -16,7 +16,9 @@ def fast_mass_springs_step_dense(
 
         y = (1/Δt²) M (2 Ucur - Uprev) + fext + w Cᵀ (C V)      (w = 1e10)
 
-    Then repeat ~50 times::
+    Start from a copy of the current positions, ``Unext = Ucur.copy()``, then
+    repeat exactly 50 times, with no early stop. The checks require this
+    initial value and iteration count::
 
         d[e]  = r[e] * normalize((A Unext)[e])     # local
         rhs   = k Aᵀ d + y
@@ -41,5 +43,6 @@ def fast_mass_springs_step_dense(
     -------
     Unext : (n, 3)    positions at the next time step.
     """
-    # TODO: build y, then run the 50-iteration local-global loop with cho_solve.
+    # TODO: build y, set Unext = Ucur.copy(), then run exactly 50 local-global
+    # iterations, solving with cho_solve.
     raise NotImplementedError("Implement fast_mass_springs_step_dense")

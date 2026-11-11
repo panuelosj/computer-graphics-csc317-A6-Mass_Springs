@@ -279,7 +279,7 @@ $$
 \frac{\dot{\mathbf{p}}^{t+\Delta t}_i - \dot{\mathbf{p}}^{t}_i}{\Delta t} =
 \frac{\mathbf{p}^{t+\Delta t}_i - \mathbf{p}^{t}_i}{\Delta t^2}
 -\frac{\mathbf{p}^t_i - \mathbf{p}^{t-\Delta t}_i}{\Delta t^2}=
-\frac{\mathbf{p}^{t+\Delta t}_i - 2 \mathbf{p}^{t}_i + \mathbf{p}^{t-\Delta t}}{\Delta t^2 }.
+\frac{\mathbf{p}^{t+\Delta t}_i - 2 \mathbf{p}^{t}_i + \mathbf{p}^{t-\Delta t}_i}{\Delta t^2 }.
 $$
 
 This expression mentions our _unknown_ variables $\mathbf{p}^{t+\Delta t}_i$ for the first
@@ -290,7 +290,7 @@ variables.
 ### Time integration as energy optimization
 
 In the equation $\mathbf{f} = m \mathbf{a}$, the acceleration term $\mathbf{a}$ depends _linearly_ on the
-unknowns $\mathbf{p}^{t+\Delta t}$. Unfortunately, even for a simple spring the forces $\mathbf{f} = \partial V/\partial \mathbf{p}^{t+\Delta t}$ depend _non-linearly_ on $\mathbf{p}^{t+\Delta t}$. This means we have a
+unknowns $\mathbf{p}^{t+\Delta t}$. Unfortunately, even for a simple spring the forces $\mathbf{f} = -\partial V/\partial \mathbf{p}^{t+\Delta t}$ depend _non-linearly_ on $\mathbf{p}^{t+\Delta t}$. This means we have a
 _non-linear_ system of equations, which can be tricky to satisfy directly.
 
 <!--
@@ -312,8 +312,8 @@ $$
 
 An alternative is to view physics simulation as an optimization problem. We
 will define an energy that will be minimized by the value of $\mathbf{p}^{t+\Delta t}$ that
-satisfies $\mathbf{f} = m \mathbf{a}$. The minimizer $\mathbf{p}$ of some function $E(x)$ will satisfy
-$\partial E/\partial \mathbf{p} = 0$. So we construct an energy $E$ such that $\partial E/\partial \mathbf{p} = \mathbf{f} - m\mathbf{a}$:
+satisfies $\mathbf{f} = m \mathbf{a}$. The minimizer $\mathbf{p}$ of some function $E(\mathbf{p})$ will satisfy
+$\partial E/\partial \mathbf{p} = 0$. So we construct an energy $E$ such that $\partial E/\partial \mathbf{p} = m\mathbf{a} - \mathbf{f}$:
 
 $$
 \mathbf{p}^{t+\Delta t} = \mathop{\text{argmin}}_\mathbf{p}
@@ -345,7 +345,7 @@ minimize $E$ quite simple and fast. For each spring $ij$, they observe that the
 non-linear energy can be written as a small optimization problem:
 
 $$
-(\| \mathbf{p}_i - \mathbf{p}_j\|  - r_{ij})^2  = \mathop{\text{min}}_{\mathbf{d}_{ij}\in \mathbf{R}^3,\| \mathbf{d}\|  = r_{ij}} \| (\mathbf{p}_i - \mathbf{p}_j) - \mathbf{d}_{ij}\| ^2.
+(\| \mathbf{p}_i - \mathbf{p}_j\|  - r_{ij})^2  = \mathop{\text{min}}_{\mathbf{d}_{ij}\in \mathbf{R}^3,\| \mathbf{d}_{ij}\|  = r_{ij}} \| (\mathbf{p}_i - \mathbf{p}_j) - \mathbf{d}_{ij}\| ^2.
 $$
 
 It may seem like we've just created extra work. We took a closed-form expression 
@@ -356,7 +356,7 @@ $\mathbf{d}_{ij}$ doesn't depend on $\mathbf{d}_{\ell k}$ etc.). Reading the rig
 English it says, find the vector of length $r_{ij}$ that is as close as possible
 to the current spring vector $\mathbf{p}_i - \mathbf{p}_j$. 
 
-<img src="docs/images/dij-rij-closest-vector.png" alt="the closest vector of length r to the current spring vector d" width="460">
+<img src="docs/images/dij-rij-closest-vector.png" alt="d_ij, the vector of length r_ij closest to the current spring vector p_i - p_j" width="460">
 
 Now, suppose we somehow _knew already_ the vector $\mathbf{d}_{ij}$ corresponding to the
 _unknown_ optimal solution $\mathbf{p}^{t+\Delta t}$, then treating $\mathbf{d}_{ij}$ as a _constant_ we could
@@ -388,7 +388,7 @@ This leads to a straightforward "local-global" iterative algorithm:
  - Step 3: if "not satisfied", go to Step 1.
 
 For the purposes of this assignment we will assume that we're "satisfied" after
-a fixed number of iterations (e.g., 50). More advanced _stopping criteria_ could
+a fixed number of iterations (here, exactly 50). More advanced _stopping criteria_ could
 (should) be employed in general.
 
 ### Matrices
@@ -507,7 +507,7 @@ $$
 > $$\frac{\partial  \mathop{\text{tr}}{\left(\mathbf{x}^\top \mathbf{y}\right)}}{\partial  \mathbf{x}} = \mathbf{y}$$
 > and 
 >
-> $$\frac{\partial  \frac12 \mathop{\text{tr}}{\left(\mathbf{x}^\top \mathbf{Y} \mathbf{x}\right)}}{\partial  \mathbf{x}} = \mathbf{Y} \mathbf{x}$$
+> $$\frac{\partial  \frac12 \mathop{\text{tr}}{\left(\mathbf{x}^\top \mathbf{Y} \mathbf{x}\right)}}{\partial  \mathbf{x}} = \mathbf{Y} \mathbf{x} \quad \text{for symmetric } \mathbf{Y}$$
 >
 
 Taking a derivative with respect to $\mathbf{p}$ and setting the expression to zero
@@ -580,7 +580,7 @@ general matrix we would be storing $n^2 -n$ zeros. Instead, we can acknowlede th
 this matrix is [sparse](https://en.wikipedia.org/wiki/Sparse_matrix) and store
 only the non-zeros along the diagonal.
 
-Similarly, the matrix $\mathbf{A}^{m\times n}$ has $2m$ non-zeros (a $+1$ and $-1$ per edge)
+Similarly, the matrix $\mathbf{A} \in \mathbf{R}^{m\times n}$ has $2m$ non-zeros (a $+1$ and $-1$ per edge)
 and the other $mn-2m$ entries are zero. Furthermore, the result of the product $\mathbf{A}^\top\mathbf{A}$ and by
 extension $\mathbf{Q} \in  \mathbf{R}^{n\times n}$ will mostly contain zeros. The number of non-zeros is
 in fact $O(m + n)$. Large mass-spring systems tend to have $m=O(n)$ edges, so we
@@ -591,7 +591,7 @@ General (or "dense") matrices can be easily mapped to memory linearly. For a an
 arbitrary sparse matrix, we need store additional information to know _where_
 each non-zero entry is. The most common general approach is to stored a sorted
 list of values in each column (or row) of the matrix. This is a rather awkward
-data-structure to manipulate directly. Similar to the pitfalls of [bubble
+data-structure to manipulate directly. Similar to the pitfalls of [insertion
 sort](https://en.wikipedia.org/wiki/Insertion_sort), inserting values one at a
 time can be quite slow since we'd have to keep the lists sorted after each
 operation. 
@@ -651,7 +651,7 @@ will just accelerate downward off the screen.
 
 We can pin down vertices (e.g., those listed in `b`) at their intial positions,
 by requiring that their corresponding positions values $\mathbf{p}_i$ are always forced
-to be equal to their initial values $\mathbf{p}^\text{rest}_b$:
+to be equal to their initial values $\mathbf{p}^\text{rest}_i$:
 
 $$
 \mathbf{p}_i = \mathbf{p}^\text{rest}_i \ \forall  i \text{ in pinned vertices}.
@@ -747,7 +747,11 @@ Now you should be able to see more complex examples, such as running
 
 * The penalty weight is `w = 1e10`.
 * The system matrix is `Q = k Aᵀ A + (1/Δt²) M + w Cᵀ C`.
-* The local-global loop runs **50** iterations per time step.
+* Each time step starts the local-global loop from a copy of the current
+  positions, `Unext = Ucur.copy()`, and runs exactly 50 iterations, with no
+  early stop. Fifty iterations do not fully converge, so the step checks expect
+  the result of exactly this loop. Other starting guesses, such as
+  `2 Ucur - Uprev`, and other iteration counts fail the step checks.
 * The auxiliary right-hand side is
   `y = (1/Δt²) M (2 Ucur - Uprev) + fext + w Cᵀ (C V)`.
 * `prefactorization` is the object the precomputation returns and the step
